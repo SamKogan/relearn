@@ -27,6 +27,18 @@ export function pairsToCards(
   return cards
 }
 
+/** Keep every saved card, then append pairs that are not already in the list. */
+export function mergeCards(existing: readonly Card[], incoming: readonly Card[]): Card[] {
+  const seen = new Set(existing.map((card) => card.id))
+  const cards = [...existing]
+  for (const card of incoming) {
+    if (seen.has(card.id)) continue
+    seen.add(card.id)
+    cards.push(card)
+  }
+  return cards
+}
+
 export type Face = {
   prompt: string
   promptLang: string

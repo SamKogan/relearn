@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { choiceOptions } from "./cards"
+import { choiceOptions, mergeCards, pairsToCards } from "./cards"
 import { SAMPLE_SHEET } from "./decks"
 import { isClose, isCorrect } from "./grade"
 import { hintFor } from "./hints"
@@ -71,6 +71,32 @@ describe("saved translations sheet", () => {
     expect(parsed.cards.map((card) => card.learning).sort()).toEqual(["גחליליות", "לשתול"])
     const quoted = parseTable('Hebrew,English,"hello, there",עולם\n')
     expect(quoted[0]).toEqual(["Hebrew", "English", "hello, there", "עולם"])
+  })
+})
+
+describe("updating a list", () => {
+  it("adds new pairs and keeps the ones already saved", () => {
+    const existing = pairsToCards(
+      [
+        ["כלב", "dog"],
+        ["סוף", "end"],
+      ],
+      "he",
+      "en",
+    )
+    const incoming = pairsToCards(
+      [
+        ["כָּלֶב", "Dog"],
+        ["סופ", "end"],
+        ["חתול", "cat"],
+      ],
+      "he",
+      "en",
+    )
+    const merged = mergeCards(existing, incoming)
+    expect(merged.map((card) => card.learning)).toEqual(["כלב", "סוף", "חתול"])
+    expect(merged[0]?.id).toBe(existing[0]?.id)
+    expect(merged[1]?.id).toBe(existing[1]?.id)
   })
 })
 

@@ -15,12 +15,12 @@ type Preview = {
 
 type ImportProps = {
   learningLang: string
-  replacing: boolean
+  savedCards: Card[]
   onCancel: () => void
   onStart: (cards: Card[], title: string) => void
 }
 
-export function ImportSheet({ learningLang, replacing, onCancel, onStart }: ImportProps) {
+export function ImportSheet({ learningLang, savedCards, onCancel, onStart }: ImportProps) {
   const language = languageById(learningLang)
   const fileRef = useRef<HTMLInputElement>(null)
   const [link, setLink] = useState("")
@@ -29,8 +29,11 @@ export function ImportSheet({ learningLang, replacing, onCancel, onStart }: Impo
   const [busy, setBusy] = useState(false)
   const [hot, setHot] = useState(false)
   const [preview, setPreview] = useState<Preview | null>(null)
+  const savedIds = new Set(savedCards.map((card) => card.id))
+  const added = preview ? preview.cards.filter((card) => !savedIds.has(card.id)).length : 0
+  const updating = savedCards.length > 0
 
-function applyRows(rows: string[][], title: string) {
+  function applyRows(rows: string[][], title: string) {
     const parsed = rowsToCards(rows, learningLang)
     if (parsed.cards.length === 0) {
       setPreview(null)
@@ -171,10 +174,11 @@ function applyRows(rows: string[][], title: string) {
                 {language?.name}, so {preview.skipped === 1 ? "it was" : "they were"} left out.
               </p>
             )}
-            {replacing && (
+            {updating && (
               <p className="fine">
-                This replaces the {language?.name} list you already saved. Scores for words that are still in the list
-                stay.
+                {added === 0
+                  ? "Every word here is already in your list. Scores stay as they are."
+                  : `${added.toLocaleString("en-US")} new ${added === 1 ? "word" : "words"} will be added. The ${savedCards.length.toLocaleString("en-US")} you already have stay, with their scores.`}
               </p>
             )}
             <ul className="review">
@@ -192,8 +196,13 @@ function applyRows(rows: string[][], title: string) {
                 )
               })}
             </ul>
-            <button type="button" className="primary" onClick={() => onStart(preview.cards, preview.title)}>
-              Start a round
+            <button
+              type="button"
+              className="primary"
+              disabled={updating && added === 0}
+              onClick={() => onStart(preview.cards, preview.title)}
+            >
+              {updating ? (added === 0 ? "Nothing new to add" : `Add ${added.toLocaleString("en-US")} new ${added === 1 ? "word" : "words"}`) : "Start a round"}
             </button>
           </div>
         )}

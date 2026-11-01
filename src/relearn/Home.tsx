@@ -10,7 +10,7 @@ import { Mark } from "./Mark"
 type HomeProps = {
   store: Store
   onLearningLang: (id: string) => void
-  onImport: () => void
+  onImport: (learningLang?: string) => void
   onSample: () => void
   onPractice: (deck: Deck) => void
   onWords: (deck: Deck) => void
@@ -23,6 +23,7 @@ export function Home({ store, onLearningLang, onImport, onSample, onPractice, on
   const common = commonDeck(store.learningLang)
   const commonSummary = common ? deckSummary(common.cards, store.stats) : null
   const hebrew = commonDeck("he")
+  const hasImport = store.imports.some((item) => item.id === `import:${store.learningLang}`)
 
   return (
     <div className="shell home">
@@ -68,6 +69,11 @@ export function Home({ store, onLearningLang, onImport, onSample, onPractice, on
                   <button type="button" className="primary" onClick={() => onPractice(deck)}>
                     Practice
                   </button>
+                  {saved.id.startsWith("import:") && (
+                    <button type="button" className="ghost" onClick={() => onImport(saved.learningLang)}>
+                      Update
+                    </button>
+                  )}
                   <button type="button" className="ghost" onClick={() => onWords(deck)}>
                     Scores
                   </button>
@@ -92,11 +98,12 @@ export function Home({ store, onLearningLang, onImport, onSample, onPractice, on
           <p className="kicker">From your stars</p>
           <h2>Saved translations</h2>
           <p>
-            Star a word in Google Translate, then bring the sheet here. You'll practice those words, not someone
-            else's list.
+            {hasImport
+              ? "Star more words, then bring the sheet again. New words are added, and the scores you already have stay."
+              : "Star a word in Google Translate, then bring the sheet here. You'll practice those words."}
           </p>
-          <button type="button" className="primary" onClick={onImport}>
-            Bring my list
+          <button type="button" className="primary" onClick={() => onImport()}>
+            {hasImport ? "Update my list" : "Bring my list"}
           </button>
           {store.learningLang === "he" && (
             <button type="button" className="texty" onClick={onSample}>
